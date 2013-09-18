@@ -1,0 +1,50 @@
+{% extends "main.html" %}
+
+{% block otherheader %} <script src="{{ static_url("js/game.js") }}"></script>
+{% end %}
+
+{% block head %}
+	<h1>{{ header_text }}</h1>
+{% end %}
+
+{% block body %}
+	
+    <div class="container-fluid">
+            <!-- <bootstrap> -->
+        <div class="row-fluid" id = "leftside">
+            
+            <div class="span9">
+            <!--Body content-->
+                <div class="panel panel-primary">
+                    <div class = "panel-heading">
+                        <h3 class = "panel-title">Bot's previous turn</h3>
+                    </div>
+                    <div class = "panel-body">
+                        He rolled a 4 and a 5. He rerolled the 4 into a 2.
+                    </div>
+                </div>
+                <center> You rolled a <div id = "firstroll" class = "rollednum"></div> and a <div id = "secondroll" class = "rollednum"></div>!
+                <br>
+
+                <div class="btn-group">
+
+                    <button id = "reroll1" type="submit" onclick="rerolldice(1)" class="btn btn-default">Reroll 1</button>
+
+                    <button id = "reroll2" class="btn btn-disabled" disabled>Content of Button</button>
+
+                    <button type="submit" onclick="submitForm('btn', 0)" class="btn btn-default">Stop rolling</button>
+
+                </div>
+            </div>
+        </div>
+            <!-- </bootstrap> -->
+    </div>
+    
+    
+{% end %}
+
+{% block footer %}
+	<footer>
+		<p>{{ footer_text }}</p>
+	</footer>
+{% end %} 

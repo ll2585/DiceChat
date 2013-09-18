@@ -1,0 +1,96 @@
+#board{
+    background-image:url("/static/img/background.jpg");
+    background-position: bottom;
+}
+
+#castle, #order, #favors-container{
+    height: 120px;
+}
+
+#bridge{
+    height: 80px;
+}
+
+.ui-dialog-titlebar{
+    border: none;
+}
+
+#favors-container table{
+    border-collapse: collapse;
+}
+
+#favors-container td{
+    border: 1px solid black;
+}
+
+table#players {
+    background-color: rgba(255,255,255, 0.3);
+}
+
+.right{
+    float: right;
+}
+
+.icon{
+    vertical-align: middle;
+    padding-left: 1px;
+    padding-right: 1px;
+}
+
+.icon-float{
+    position:absolute;
+    opacity: 0.5;
+}
+
+
+#b0, #b1, #b2, #b3, #b4, #b5, #b6, #b13, #b14{
+
+}
+
+.b{
+
+    background-color: rgba(255,255,255, 0.3);
+    margin-bottom: 10px;
+    height: 80px;
+    text-align: center;
+    outline: 2px solid brown;
+    opacity: 1.0;
+    font-weight: bold;
+}
+
+
+.b .owner{
+    padding-top: 5px;
+    height: 25px;
+}
+
+.b .bailiff {
+    padding-top:5px;
+}
+
+.b .provost{
+    padding-top:10px;
+}
+
+.b .worker{
+    height: 30px;
+}
+
+.b .label {
+    height: 20px;
+}
+
+.available {
+    outline: 3px solid green;
+}
+
+.current {
+    outline: 5px solid red;
+}
+
+.wood { background-color: #E0B97E; }
+.stone { background-color: #A3A39B; }
+.neutral { background-color: #E0BFB4; }
+.residence {background-color: #74B980; }
+.prestige {background-color: #85B0D5;}
+/*.null {background-color: #FFFFFF; }*/

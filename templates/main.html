@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+    <!--<script src="{{ static_url("js/game.js") }}"></script>-->
+    <script src="{{ static_url("js/message.js") }}"></script>
+    
+    <link rel="stylesheet" href="{{ static_url("css/jquery-ui.css") }}">
+    <link rel="stylesheet" href="{{ static_url("css/blueprint/screen.css" ) }}"type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="{{ static_url("css/blueprint/print.css") }}" type="text/css" media="print">
+    <link rel="stylesheet" href="{{ static_url("css/style.css") }}">
+    <link rel="stylesheet" href="{{ static_url("css/main.css") }}">
+    <link rel="stylesheet" href="{{ static_url("css/lib/bootstrap.css") }}">
+    <link rel="stylesheet" href="{{ static_url("css/lib/bootstrap-responsive.css") }}">
+    {% block otherheader %} {% end %}
+    
+	<title>{{ escape(page_title) }}</title>
+</head>
+<body>
+	<div id="container">
+		<header>
+			{% block head %}<h1>Hello.</h1>{% end %}
+		</header>
+		<div id="main">
+			<div id="content">
+				{% block body %}{% end %}
+			</div>
+		</div>
+		<footer>
+			{% block footer %}{% end %}
+		</footer>
+	</div>
+	</body>
+</html>

@@ -1,0 +1,78 @@
+{% extends "main.html" %}
+
+{% block otherheader %}<script src="{{ static_url("js/play.js") }}"></script>
+<script> GAME_ID = {{g.id}}; </script>
+{% end %}
+
+{% block head %}
+	<h1>{{ header_text }}</h1>
+{% end %}
+
+{% block body %}
+	
+    <div class="container-fluid">
+            <!-- <bootstrap> -->
+        <div class="row-fluid" id = "leftside">
+            <div class="span3">
+                <table class="table table-hover table-striped">
+                    <tbody id = "scoretable">
+                        <tr><td><span class="label label">Turn</span></td>
+                            <td><span class="label label-important">Bot's Turn</span></td>
+                            <td><span class="label label-info">Your Turn</span></td>
+                        </tr>
+                        <tr><td>1</td>
+                            <td>{{ g.players[1].firstdieroll }} / {{g.players[1].seconddieroll }}</td>
+                            <td>{{ g.players[0].firstdieroll }} / {{ g.players[0].seconddieroll }}</td>
+                        </tr>
+                        <tr class = "success" id = "total"><td>TOTAL:</td>
+                            <td>5</td>
+                            <td>3</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+            <div class="span9">
+            <!--Body content-->
+                <div class="panel panel-primary">
+                    <div class = "panel-heading">
+                        <h3 class = "panel-title">Bot's previous turn</h3>
+                    </div>
+                    <div class = "panel-body">
+                        He rolled a 4 and a 5. He rerolled the 4 into a 2.
+                    </div>
+                </div>
+                <center> You rolled a <div id = "firstroll" class = "rollednum">
+                    {% if g.current_player.rerolled[0] %} <del>{% end %}{{ g.current_player.firstdieroll }}{% if g.current_player.rerolled[0] %}</del>   {{ g.current_player.firstdiereroll }}{% end %}
+                    </div> and a <div id = "secondroll" class = "rollednum">{% if g.current_player.rerolled[1] %} <del>{% end %}{{ g.current_player.seconddieroll }}{% if g.current_player.rerolled[1] %}</del>   {{ g.current_player.seconddiereroll }}{% end %}</div>!
+                <br>
+
+                <div class="btn-group">
+                    {% if not g.current_player.rerolled[0] %}
+                    <button id = "reroll1" type="submit" onclick="rerolldice(0)" class="btn btn-default">Reroll {{ g.current_player.firstdieroll }}</button>
+                    {% else %}
+                    <button id = "reroll1" class="btn btn-disabled" disabled>Content of Button</button>
+                    {% end %}
+
+                    {% if not g.current_player.rerolled[1] %}
+                    <button id = "reroll1" type="submit" onclick="rerolldice(1)" class="btn btn-default">Reroll {{ g.current_player.seconddieroll }}</button>
+                    {% else %}
+                    <button id = "reroll1" class="btn btn-disabled" disabled>Content of Button</button>
+                    {% end %}
+
+                    <button type="reroll1" onclick="stoproll()" class="btn btn-default">Stop rolling</button>
+
+                </div>
+            </div>
+        </div>
+            <!-- </bootstrap> -->
+    </div>
+    
+    
+{% end %}
+
+{% block footer %}
+	<footer>
+		<p>{{ footer_text }}</p>
+	</footer>
+{% end %} 

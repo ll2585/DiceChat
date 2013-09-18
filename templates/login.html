@@ -1,0 +1,5 @@
+<html><body><form action="/auth/login" method="post">
+                   Name: <input type="text" name="name">
+                   <input type="submit" value="Sign in">
+                   {% raw xsrf_form_html() %}
+                   </form></body></html>

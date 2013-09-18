@@ -1,0 +1,2 @@
+<div class="message" id="m{{ message["id"] }}"><b>{{ message["from"] }}: </b>{% if "body" not in message %} 
+{% elif not message["body"] %} {% else %} {% module  linkify(message["body"]) %} {% end %}</div>
