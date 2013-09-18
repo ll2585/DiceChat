@@ -4,6 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
     <title>Tornado Chat Demo</title>
     <link rel="stylesheet" href="{{ static_url("chat.css") }}" type="text/css"/>
+        <link rel="stylesheet" href="{{ static_url("css/main.css") }}" type="text/css"/>
+        <link rel="stylesheet" href="{{ static_url("css/lib/bootstrap.css") }}">
+    <link rel="stylesheet" href="{{ static_url("css/lib/bootstrap-responsive.css") }}">
   </head>
   <body>
     <div id="nav">
@@ -11,14 +14,39 @@
       <a href="/auth/logout">{{ _("Sign out") }}</a>
       THE CURRENT GAME ID IS <div id = "gameid">{{id}}</div>
     </div>
-    <div id="body">
-      <div class="row">
+    <div id="body"><div class="container">
+<div class="row">
+<div class="span10 pull-down">
       <div id="inbox">
-<div class="span4">
+
         {% for event in eventmessages %}
           {% module Template("eventmessage.html", message=event) %}
         {% end %}
       </div>
+            
+
+      </div>
+      <div class="span2 pull-down scoreboard"><table class="table table-bordered table-hover table-condensed scoreboard">
+ <caption>SCOREBOARD</caption>
+ <thead>
+    <tr>
+        <th>Player</th>
+        <th>Score</th>
+        </tr>
+ </thead>
+ <tbody>
+
+    {% for p in g.players %}
+        <tr>
+                  <td>{{ p.name }}</td>
+
+        <td>{{ p.score }}</td>
+                </tr>
+        {% end %}
+
+
+ </tbody>
+</table></div>
       </div>
       </div>
 
@@ -30,10 +58,8 @@
             <td style="padding-left:5px">
             <div id = "buttons">
               {% if not g.started %}
-              <input type="submit" id = "start" name="start" value="Start Game" {% if g.getNumPlayers() < 2 %} disabled = True {% end %} >
-              <input type="submit" id = "addBot" class="gameButton" name = "addBot" value="Add Bot" >
-
-              {% else %}
+              <input type="submit" id = "start" name="start" value="Start Game" {% if g.getNumPlayers() < 2 %} disabled = True {% end %} > 
+               <input type="submit" class = "gameButton" id = "addBot" name="addBot" value="Add Bot"> {% else %}
             {% if  activePlayerCurPlayer %}
               {% if  g.curPlayer.canreroll[0] %}
               <input type="submit" id = "rr1" name="reroll_1" value="Reroll {{g.curPlayer.dice[0]}}"> {% end %}

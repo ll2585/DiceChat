@@ -25,8 +25,13 @@ $(document).ready(function() {
 
     var iloaded = {'load_find': true, 'gameid': $("#gameid").html()};
     $.postJSON("/a/loaded", iloaded)
-
+    redrawScoreboard();
 });
+
+
+function redrawScoreboard(){
+    $('.scoreboard').offset({ top: ($( document ).height() - $('.scoreboard').height()) });
+}
 
 function updateButtonHandlers(){
      $("#rr1, #rr2, #rrend, #start, .gameButton").on("click", function(event) {
@@ -179,6 +184,10 @@ var updater = {
                 //game started!
                 $("#start").remove();
             }
+            if(response.messages[s].addBot){
+                //game started!
+                //redrawScoreboard();
+            }
         if (!response.messages) return;
         updater.cursor = response.cursor;
         var messages = response.messages;
@@ -196,5 +205,6 @@ var updater = {
         node.hide();
         $("#inbox").append(node);
         node.slideDown();
+        redrawScoreboard();
     }
 };
