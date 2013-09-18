@@ -183,10 +183,16 @@ var updater = {
             if(response.messages[s].started){
                 //game started!
                 $("#start").remove();
+                $("#addBot").remove();
             }
-            if(response.messages[s].addBot){
+            if(response.messages[s].other_player_joined){
                 //game started!
-                //redrawScoreboard();
+                var toappend = '<tr><td>' + response.messages[s].joinername+ '</td><td>'+ response.messages[s].joinerscore +'</td></tr>';
+                //toappend.hide();
+                $(".scoreboard-table").append(toappend);
+                //toappend.slideDown();
+                console.log('appended ' + toappend);
+                redrawScoreboard();
             }
         if (!response.messages) return;
         updater.cursor = response.cursor;
@@ -208,3 +214,8 @@ var updater = {
         redrawScoreboard();
     }
 };
+
+
+function highlight(element){
+    $(element).css("background-color", "red");
+}

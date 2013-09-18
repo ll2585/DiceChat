@@ -115,7 +115,11 @@ def playerJoinsGame(handler, game):
             "event_type": "firstroll",
             "body": "joined the game. Total players: %s" %(game.getNumPlayers()),
             "players_in_game": game.getNumPlayers(),
-            "gameid": game.id
+            "gameid": game.id,
+            "player_joined": True,
+            "joinername": me(handler),
+            #CHANGE THIS MAYBE?
+            "joinerscore": 0
         }
     joinmessage["html"] = tornado.escape.to_basestring(
         handler.render_string("eventmessage.html", message=joinmessage))
@@ -184,24 +188,27 @@ class ActionEventHandler(BaseHandler):
             print('sent message %s' %newmessage)
             print("ok it sent check if i am cur player %s" %(self.curGame.curPlayer))
             thename = self.curGame.curPlayer.name
-            if self.curGame.isActivePlayerCurPlayer(myID(self)):
-                print("OK humans turn")
-                self.curGame.curPlayer.newTurn()
-                humanmessage ={
-                        "id": str(uuid.uuid4()),
-                        "from": self.curGame.curPlayer.name,
-                        "event_type": "ok",
-                        "body": self.curGame.curPlayer.getRollResults(),
-                        "dice1": self.curGame.curPlayer.dice[0],
-                        "dice2": self.curGame.curPlayer.dice[1],
-                        "waitingforme": True,
-                        "gameid": gameid
-                    }
-                humanmessage["html"] = tornado.escape.to_basestring(
-                        self.render_string("message.html", message=humanmessage))
-                print('sending new message %s' %humanmessage)
-                sendmessage(self, humanmessage)
+            self.checkForMyTurn()
 
+    def checkForMyTurn(self):
+        gameid = self.get_argument("gameid")
+        if self.curGame.isActivePlayerCurPlayer(myID(self)):
+            print("OK humans turn actually its %s turn" %(self.curGame.curPlayer.name))
+            self.curGame.curPlayer.newTurn()
+            humanmessage ={
+                    "id": str(uuid.uuid4()),
+                    "from": self.curGame.curPlayer.name,
+                    "event_type": "ok",
+                    "body": self.curGame.curPlayer.getRollResults(),
+                    "dice1": self.curGame.curPlayer.dice[0],
+                    "dice2": self.curGame.curPlayer.dice[1],
+                    "current_player": self.curGame.curPlayer.name,
+                    "gameid": gameid
+                }
+            humanmessage["html"] = tornado.escape.to_basestring(
+                    self.render_string("message.html", message=humanmessage))
+            print('sending new message %s' %humanmessage)
+            sendmessage(self, humanmessage)
     def processargs(self):
         message = {
             "id": str(uuid.uuid4()),
@@ -227,14 +234,20 @@ class ActionEventHandler(BaseHandler):
                 print("start game!")
             elif action == 'addBot':
                 message['addBot'] = True
+                message['player_joined'] = True
+                #CHANGE THIS TO BE DYNAMIC!!
+                message['joinername'] = "DumbBot"
+                message['joinerscore'] = 0
                 print("ADDED BOT!")
             self.curGame.process(action)
+            if action == 'start':
+                self.checkForMyTurn()
             message['body'] = self.curGame.actionResults(action)
-
             if self.curGame.gameOver() is not None:
                 message['gameover'] = True
         print(self.request.arguments)
 
+        message['players_in_game'] = self.curGame.getNumPlayers()
         return message
 
 
@@ -249,7 +262,7 @@ class ActionUpdateHandler(BaseHandler):
     def on_new_messages(self, messages):
         # Closed client connection
         #called when I receieve messages
-        #print('receieved messages %s' %messages)
+        print('receieved messages %s' %messages)
         messages = self.processEvent(messages)
         if self.request.connection.stream.closed():
             return
@@ -260,6 +273,10 @@ class ActionUpdateHandler(BaseHandler):
         gameid = messages[0]['gameid']
         self.curGame = GAMES[gameid]
         print("the cur player is %s" %self.curGame.curPlayer.name)
+        if 'joinername' in messages[0]:
+            messages[0]['other_player_joined'] = messages[0]['joinername'] != me(self)
+        if 'current_player' in messages[0]:
+            messages[0]['waitingforme'] = messages[0]['current_player'] == me(self)
         #messages[0]['waitingforme'] = self.curGame.waitingForPlayerCookie(myID(self))
         return messages
 
