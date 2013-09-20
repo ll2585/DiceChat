@@ -11,7 +11,7 @@
 // WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 // License for the specific language governing permissions and limitations
 // under the License.
-
+var myId = null;
 $(document).ready(function() {
     if (!window.console) window.console = {};
     if (!window.console.log) window.console.log = function() {};
@@ -24,7 +24,11 @@ $(document).ready(function() {
     updater.poll();
 
     var iloaded = {'load_find': true, 'gameid': $("#gameid").html()};
-    $.postJSON("/a/loaded", iloaded)
+    $.postJSON("/a/loaded", iloaded, function(response){
+        myId = response.activeplayerID;
+        console.log(response);
+        console.log(response.activeplayerID);
+    });
     redrawScoreboard();
 });
 
@@ -167,7 +171,7 @@ var updater = {
         console.log(response);
         var s = response.messages.length - 1;
             //if its not me, and its done, my turn !
-            if(response.messages[s].waitingforme){
+            if(response.messages[s].currentPlayer == myId){
                 //if the other guy is over my turn !
 
                 $("#waiting").remove();

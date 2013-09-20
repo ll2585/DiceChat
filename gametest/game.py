@@ -158,3 +158,7 @@ class WebGame(Game):
                 tocheck = p
                 break
         return self.waitingForPlayer(tocheck)
+
+    def curPlayerID(self):
+        print("the current player's id is %s" %(self.curPlayer.id))
+        return self.curPlayer.id

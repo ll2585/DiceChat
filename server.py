@@ -171,6 +171,26 @@ class ActionEventHandler(BaseHandler):
         #append it to the asyncher
         global_message_buffer.new_messages([message])
 
+        #bandage hack to make other player go
+        if not self.curGame.isActivePlayerCurPlayer(myID(self)):
+            self.curGame.curPlayer.newTurn()
+            humanmessage ={
+                    "id": str(uuid.uuid4()),
+                    "from": self.curGame.curPlayer.name,
+                    "event_type": "ok",
+                    "body": self.curGame.curPlayer.getRollResults(),
+                    "dice1": self.curGame.curPlayer.dice[0],
+                    "dice2": self.curGame.curPlayer.dice[1],
+                    "current_player": self.curGame.curPlayer.name,
+                    "gameid": gameid
+                }
+            humanmessage["html"] = tornado.escape.to_basestring(
+                    self.render_string("message.html", message=humanmessage))
+            print("the current player is %s" %(self.curGame.curPlayer))
+            humanmessage['currentPlayer'] = self.curGame.curPlayerID()
+            print('sending new message %s' %humanmessage)
+            sendmessage(self, humanmessage)
+            
         while self.curGame.curPlayer.isBot:
             curBot = self.curGame.curPlayer
             botname = curBot.name
@@ -207,6 +227,8 @@ class ActionEventHandler(BaseHandler):
                 }
             humanmessage["html"] = tornado.escape.to_basestring(
                     self.render_string("message.html", message=humanmessage))
+            print("the current player is %s" %(self.curGame.curPlayer))
+            humanmessage['currentPlayer'] = self.curGame.curPlayerID()
             print('sending new message %s' %humanmessage)
             sendmessage(self, humanmessage)
     def processargs(self):
@@ -321,6 +343,11 @@ class LoadHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self):
         print(self.get_argument("load_find"))
+        import gametest.gameutils
+        activeplayerID = gametest.gameutils.make_hash(myID(self))
+        response = { "activeplayerID": activeplayerID}
+        print('sending id %s' %response)
+        self.write(response)
         #in case i ever need to run something on load
         '''
         gameid = self.get_argument("gameid")
