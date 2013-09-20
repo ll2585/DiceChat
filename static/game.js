@@ -189,9 +189,40 @@ var updater = {
                 $("#start").remove();
                 $("#addBot").remove();
             }
+            if(response.messages[s].scores){
+                console.log("POLL ERROR??");
+                //alert(response.messages[s].scores);
+                //update scores
+                console.log(response.messages[s].scores.scoreboard);
+                var scores = [
+                    {"name": "Luke", "score": 49},
+                    {"name": "Bob", "score": 4},
+                ];
+                scores = response.messages[s].scores.scoreboard;
+                /*
+                var tbody = $('.scoreboard tbody'),
+                props = ["name", "score"];
+                $.each(scores, function(i, s) {
+                  var tr = $('<tr>');
+                  $.each(props, function(i, prop) {
+                    $('<td>').text(s[prop]).appendTo(tr);  
+                  });
+                  tbody.append(tr);
+                });*/
+                var objUser = {"id":2,"username":"j.smith","fname":"john","lname":"smith"};
+                var objKeys = ["name", "score", "lname"];
+                for(var f =0; f < scores.length; f++){
+                    $('#tr_' + scores[f].id + ' td').each(function(i) {
+                        $(this).text(scores[f][objKeys[i]]);
+                    });
+                }
+
+                console.log("ADDED SCORES??");
+
+            }
             if(response.messages[s].other_player_joined){
                 //game started!
-                var toappend = '<tr><td>' + response.messages[s].joinername+ '</td><td>'+ response.messages[s].joinerscore +'</td></tr>';
+                var toappend = '<tr id = "tr_' +response.messages[s].joinerid+'"><td>' + response.messages[s].joinername+ '</td><td>'+ response.messages[s].joinerscore +'</td></tr>';
                 //toappend.hide();
                 $(".scoreboard-table").append(toappend);
                 //toappend.slideDown();

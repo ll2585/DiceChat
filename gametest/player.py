@@ -38,6 +38,9 @@ class Player():
         print('i am %s and is my turn over? %s '% (self.name, self.myTurnOver))
         return self.myTurnOver == False
 
+    def didntRollYet(self):
+        return self.myTurnOver
+
 
 class HumanPlayer(Player):
     def __init__(self, id, name):

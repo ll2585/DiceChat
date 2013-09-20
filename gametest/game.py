@@ -66,6 +66,10 @@ class Game(object):
                 return [p.name, p.score]
         return None
 
+    def getScores(self):
+        scores = list(zip([p.id for p in self.players], [p.name for p in self.players], [p.score for p in self.players]))
+        return scores
+
 
 
 class WebGame(Game):
@@ -117,7 +121,7 @@ class WebGame(Game):
         p = self.curPlayer
         print("is %s waiting? %s" %(p.name, p.waitingForTurn()))
         assert p.isBot
-        if not p.waitingForTurn():
+        if p.didntRollYet():
             print("ok i am goign!!@##$6")
             p.newTurn()
             message = p.getRollResults()
@@ -162,3 +166,14 @@ class WebGame(Game):
     def curPlayerID(self):
         print("the current player's id is %s" %(self.curPlayer.id))
         return self.curPlayer.id
+
+    def jsonScores(self):
+        scores = self.getScores()
+        result = []
+        for s in scores:
+            temp = {}
+            temp['id'] = s[0]
+            temp['name'] = s[1]
+            temp['score'] = s[2]
+            result.append(temp)
+        return result

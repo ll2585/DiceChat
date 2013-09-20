@@ -109,6 +109,7 @@ class TestHandler(BaseHandler):
 
 def playerJoinsGame(handler, game):
     game.addPlayer(HumanWebPlayer(myID(handler)))
+    import gametest.gameutils
     joinmessage ={
             "id": str(uuid.uuid4()),
             "from": me(handler),
@@ -118,6 +119,7 @@ def playerJoinsGame(handler, game):
             "gameid": game.id,
             "player_joined": True,
             "joinername": me(handler),
+            "joinerid": gametest.gameutils.make_hash(myID(handler)),
             #CHANGE THIS MAYBE?
             "joinerscore": 0
         }
@@ -172,65 +174,55 @@ class ActionEventHandler(BaseHandler):
         global_message_buffer.new_messages([message])
 
         #bandage hack to make other player go
-        if not self.curGame.isActivePlayerCurPlayer(myID(self)):
-            self.curGame.curPlayer.newTurn()
-            humanmessage ={
+        if self.curGame.started:
+            if not self.curGame.curPlayer.isBot and self.curGame.curPlayer.didntRollYet():
+                self.humanMakesFirstRoll()
+
+            while self.curGame.curPlayer.isBot:
+                curBot = self.curGame.curPlayer
+                botname = curBot.name
+                botaction = self.curGame.curPlayerBotGo()
+                newmessage ={
                     "id": str(uuid.uuid4()),
-                    "from": self.curGame.curPlayer.name,
-                    "event_type": "ok",
-                    "body": self.curGame.curPlayer.getRollResults(),
-                    "dice1": self.curGame.curPlayer.dice[0],
-                    "dice2": self.curGame.curPlayer.dice[1],
-                    "current_player": self.curGame.curPlayer.name,
+                    "from": curBot.name,
+                    "event_type": botaction,
+                    "body": botaction,
                     "gameid": gameid
                 }
-            humanmessage["html"] = tornado.escape.to_basestring(
-                    self.render_string("message.html", message=humanmessage))
-            print("the current player is %s" %(self.curGame.curPlayer))
-            humanmessage['currentPlayer'] = self.curGame.curPlayerID()
-            print('sending new message %s' %humanmessage)
-            sendmessage(self, humanmessage)
-            
-        while self.curGame.curPlayer.isBot:
-            curBot = self.curGame.curPlayer
-            botname = curBot.name
-            botaction = self.curGame.curPlayerBotGo()
-            newmessage ={
-                "id": str(uuid.uuid4()),
-                "from": curBot.name,
-                "event_type": botaction,
-                "body": botaction,
-                "gameid": gameid
-            }
-            newmessage["html"] = tornado.escape.to_basestring(
-                self.render_string("message.html", message=newmessage))
-            sendmessage(self, newmessage)
-            print('sent message %s' %newmessage)
-            print("ok it sent check if i am cur player %s" %(self.curGame.curPlayer))
-            thename = self.curGame.curPlayer.name
-            self.checkForMyTurn()
+                newmessage["html"] = tornado.escape.to_basestring(
+                    self.render_string("message.html", message=newmessage))
+                sendmessage(self, newmessage)
+                print('sent message %s' %newmessage)
+                print("ok it sent check if i am cur player %s" %(self.curGame.curPlayer))
+                thename = self.curGame.curPlayer.name
+                if not self.curGame.curPlayer.isBot  and self.curGame.curPlayer.didntRollYet():
+                    self.humanMakesFirstRoll()
 
     def checkForMyTurn(self):
+        self.humanMakesFirstRoll()
+
+    def humanMakesFirstRoll(self):
         gameid = self.get_argument("gameid")
-        if self.curGame.isActivePlayerCurPlayer(myID(self)):
-            print("OK humans turn actually its %s turn" %(self.curGame.curPlayer.name))
-            self.curGame.curPlayer.newTurn()
-            humanmessage ={
-                    "id": str(uuid.uuid4()),
-                    "from": self.curGame.curPlayer.name,
-                    "event_type": "ok",
-                    "body": self.curGame.curPlayer.getRollResults(),
-                    "dice1": self.curGame.curPlayer.dice[0],
-                    "dice2": self.curGame.curPlayer.dice[1],
-                    "current_player": self.curGame.curPlayer.name,
-                    "gameid": gameid
-                }
-            humanmessage["html"] = tornado.escape.to_basestring(
-                    self.render_string("message.html", message=humanmessage))
-            print("the current player is %s" %(self.curGame.curPlayer))
-            humanmessage['currentPlayer'] = self.curGame.curPlayerID()
-            print('sending new message %s' %humanmessage)
-            sendmessage(self, humanmessage)
+        #if self.curGame.isActivePlayerCurPlayer(myID(self)):
+        print("OK humans turn actually its %s turn" %(self.curGame.curPlayer.name))
+        self.curGame.curPlayer.newTurn()
+        humanmessage ={
+                "id": str(uuid.uuid4()),
+                "from": self.curGame.curPlayer.name,
+                "event_type": "ok",
+                "body": self.curGame.curPlayer.getRollResults(),
+                "dice1": self.curGame.curPlayer.dice[0],
+                "dice2": self.curGame.curPlayer.dice[1],
+                "current_player": self.curGame.curPlayer.name,
+                "gameid": gameid
+            }
+        humanmessage["html"] = tornado.escape.to_basestring(
+                self.render_string("message.html", message=humanmessage))
+        print("the current player is %s" %(self.curGame.curPlayer))
+        humanmessage['currentPlayer'] = self.curGame.curPlayerID()
+        print('sending new message %s' %humanmessage)
+        sendmessage(self, humanmessage)
+
     def processargs(self):
         message = {
             "id": str(uuid.uuid4()),
@@ -241,6 +233,7 @@ class ActionEventHandler(BaseHandler):
         }
         if self.get_argument("action"):
             action = self.get_argument('action')
+            self.curGame.process(action)
             if action == 'reroll_1':
                 message['rerolled1'] = True
                 print("pressed reroll1")
@@ -249,6 +242,7 @@ class ActionEventHandler(BaseHandler):
                 print("pressed reroll2")
             elif action == 'end_turn':
                 message['waiting'] = True
+                message['scores'] = dict(scoreboard=self.curGame.jsonScores())
                 #print("the game is %s" %(self.curGame.players[0].name))
                 print("pressed end")
             elif action == 'start':
@@ -259,11 +253,12 @@ class ActionEventHandler(BaseHandler):
                 message['player_joined'] = True
                 #CHANGE THIS TO BE DYNAMIC!!
                 message['joinername'] = "DumbBot"
+                message['joinerid'] = 0
                 message['joinerscore'] = 0
                 print("ADDED BOT!")
-            self.curGame.process(action)
             if action == 'start':
-                self.checkForMyTurn()
+                pass
+                #self.checkForMyTurn()
             message['body'] = self.curGame.actionResults(action)
             if self.curGame.gameOver() is not None:
                 message['gameover'] = True
