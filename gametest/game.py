@@ -1,7 +1,12 @@
 
+
 class Game(object):
 
     SCORETHRESHOLD = 100
+    ACTION_ENDTURN = 0
+    ACTION_FIRSTROLL = 1
+    ACTION_GAMENOTSTARTED = -1
+
 
     def __init__(self):
         self.players = []
@@ -10,6 +15,7 @@ class Game(object):
         self.state = {"players": self.players, "curplayer": self.curPlayer}
         self.turn = 0
         self.started = False
+        self.action = Game.ACTION_GAMENOTSTARTED
 
 
     def getState(self):
@@ -26,6 +32,7 @@ class Game(object):
     def nextTurn(self):
         self.turn += 1 
         self.updateCurPlayer()
+        self.action = Game.ACTION_FIRSTROLL
         self.logturn()
         print("STARTED!")
 
@@ -56,6 +63,7 @@ class Game(object):
     def curPlayerEndsTurn(self):
         self.curPlayer.turnOver()
         self.curPlayerIndex = (self.curPlayerIndex + 1) % self.getNumPlayers()
+        self.action = Game.ACTION_ENDTURN
         print("cur player ends")
 
 

@@ -191,6 +191,8 @@ class ActionEventHandler(BaseHandler):
                 }
                 newmessage["html"] = tornado.escape.to_basestring(
                     self.render_string("message.html", message=newmessage))
+                if self.curGame.action is Game.ACTION_ENDTURN:
+                    newmessage['scores'] = dict(scoreboard=self.curGame.jsonScores())
                 sendmessage(self, newmessage)
                 print('sent message %s' %newmessage)
                 print("ok it sent check if i am cur player %s" %(self.curGame.curPlayer))
