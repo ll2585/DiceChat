@@ -74,58 +74,64 @@ class MainHandler(BaseHandler):
 class TestHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        try:
+        if self.gameIdProvided:
             gameid = self.get_argument("id")
-        except tornado.web.MissingArgumentError:
+        else:
             import random
             gameid = random.randint(1000000,9999999)
-        if gameid not in GAMES:
-            GAMES[gameid] = WebGame(gameid)
-            #handle new game
+        if gameDoesNotExistYet(gameid):
+            makeNewGame(gameid)
         curGame = GAMES[gameid]
-        if not curGame.playerInGame(myID(self)):
-            playerJoinsGame(self, curGame)
-            #curGame.addPlayer(DumbBotWebPlayer(0))
-            #curGame.start()
+        me = makeReferenceToMe(self)
+
+        if thisPlayerIsNotInTheGame(curGame, me):
+            joinGame(curGame, me)
+            self.sendPlayerJoinedGameMessage(curGame, me)
             firstRolled = False
             curGame.nextTurn()
-        else:
-            firstRolled = True
-        if curGame.isStarted() and curGame.turn == 1 and not firstRolled:
-            firstRolled = True
-            curGame.curPlayer.newTurn()
-            newmessage ={
-                    "id": str(uuid.uuid4()),
-                    "from": curGame.curPlayer.name,
-                    "event_type": "firstroll",
-                    "body": curGame.curPlayer.getRollResults(),
-                    "gameid": gameid
-                }
-            newmessage["html"] = tornado.escape.to_basestring(
-                self.render_string("eventmessage.html", message=newmessage))
-            global_message_buffer.cache.append(newmessage)
-       #sendmessage(newmessage)
         self.render("gameindex.html", eventmessages=global_message_buffer.cache, g = curGame, activePlayerCurPlayer = curGame.isActivePlayerCurPlayer(myID(self)), id = gameid)
 
-def playerJoinsGame(handler, game):
-    game.addPlayer(HumanWebPlayer(myID(handler)))
-    import gametest.gameutils
-    joinmessage ={
-            "id": str(uuid.uuid4()),
-            "from": me(handler),
-            "event_type": "firstroll",
-            "body": "joined the game. Total players: %s" %(game.getNumPlayers()),
-            "players_in_game": game.getNumPlayers(),
-            "gameid": game.id,
-            "player_joined": True,
-            "joinername": me(handler),
-            "joinerid": gametest.gameutils.make_hash(myID(handler)),
-            #CHANGE THIS MAYBE?
-            "joinerscore": 0
-        }
-    joinmessage["html"] = tornado.escape.to_basestring(
-        handler.render_string("eventmessage.html", message=joinmessage))
-    sendmessage(handler, joinmessage)
+    def gameIdProvided(self):
+        #self.get_arguments returns a list of the arguments with the given name.
+        #If the argument is not present, returns an empty list.
+        print(self.get_arguments("id"))
+        return len(self.get_arguments("id")) != 0
+
+    def sendPlayerJoinedGameMessage(self, game, player):
+        import gametest.gameutils
+        joinmessage ={
+                "id": str(uuid.uuid4()),
+                "from": player['name'],
+                "event_type": "firstroll",
+                "body": "joined the game. Total players: %s" %(game.getNumPlayers()),
+                "players_in_game": game.getNumPlayers(),
+                "gameid": game.id,
+                "player_joined": True,
+                "joinername": player['name'],
+                "joinerid": gametest.gameutils.make_hash(player),
+                #CHANGE THIS MAYBE?
+                "joinerscore": 0
+            }
+        joinmessage["html"] = tornado.escape.to_basestring(
+            self.render_string("eventmessage.html", message=joinmessage))
+        sendmessage(joinmessage)
+
+def gameDoesNotExistYet(gameid):
+    return gameid not in GAMES
+
+def makeNewGame(gameid):
+    GAMES[gameid] = WebGame(gameid)
+
+def makeReferenceToMe(handler):
+    return myID(handler)
+
+def thisPlayerIsNotInTheGame(game, player):
+    return not game.playerInGame(player)
+
+def joinGame(game, player):
+    game.addPlayer(HumanWebPlayer(player))
+
+
 
 class MessageNewHandler(BaseHandler):
     @tornado.web.authenticated
@@ -149,6 +155,7 @@ class MessageNewHandler(BaseHandler):
 class ActionEventHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self):
+
         gameid = self.get_argument("gameid")
         try:
             self.curGame = GAMES[gameid]
@@ -193,7 +200,7 @@ class ActionEventHandler(BaseHandler):
                     self.render_string("message.html", message=newmessage))
                 if self.curGame.action is Game.ACTION_ENDTURN:
                     newmessage['scores'] = dict(scoreboard=self.curGame.jsonScores())
-                sendmessage(self, newmessage)
+                sendmessage(newmessage)
                 print('sent message %s' %newmessage)
                 print("ok it sent check if i am cur player %s" %(self.curGame.curPlayer))
                 thename = self.curGame.curPlayer.name
@@ -223,7 +230,7 @@ class ActionEventHandler(BaseHandler):
         print("the current player is %s" %(self.curGame.curPlayer))
         humanmessage['currentPlayer'] = self.curGame.curPlayerID()
         print('sending new message %s' %humanmessage)
-        sendmessage(self, humanmessage)
+        sendmessage(humanmessage)
 
     def processargs(self):
         message = {
@@ -368,11 +375,11 @@ def myID(self):
     return tornado.escape.json_decode(self.get_secure_cookie("chatdemo_user"))
 
 
-def sendmessage(handler, message, numseconds = .5):
+def sendmessage(message, numseconds = .5):
     import datetime
-    tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=numseconds), callback = lambda: lambdafunction(handler))
+    tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=numseconds), callback = lambda: lambdafunction())
 
-    def lambdafunction(handler):
+    def lambdafunction():
         #handler.write(message)
         global_message_buffer.new_messages([message])
 
