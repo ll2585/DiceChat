@@ -85,10 +85,12 @@ class TestHandler(BaseHandler):
         me = makeReferenceToMe(self)
 
         if thisPlayerIsNotInTheGame(curGame, me):
-            joinGame(curGame, me)
-            self.sendPlayerJoinedGameMessage(curGame, me)
-            firstRolled = False
-            curGame.nextTurn()
+            if not gameStarted(curGame):
+                joinGame(curGame, me)
+                self.sendPlayerJoinedGameMessage(curGame, me)
+                curGame.nextTurn()
+            else:
+                print("game started too bad")
         self.render("gameindex.html", eventmessages=global_message_buffer.cache, g = curGame, activePlayerCurPlayer = curGame.isActivePlayerCurPlayer(myID(self)), id = gameid)
 
     def gameIdProvided(self):
@@ -115,6 +117,9 @@ class TestHandler(BaseHandler):
         joinmessage["html"] = tornado.escape.to_basestring(
             self.render_string("eventmessage.html", message=joinmessage))
         sendmessage(joinmessage)
+
+def gameStarted(game):
+    return game.started
 
 def gameDoesNotExistYet(gameid):
     return gameid not in GAMES
@@ -162,7 +167,7 @@ class ActionEventHandler(BaseHandler):
         except KeyError:
             print("There was an error, did games disappear? %s" %GAMES)
         #make a message, which is just me sending my event
-
+        #this is horribly coded please change this sometime
         message = self.processargs()
 
 
